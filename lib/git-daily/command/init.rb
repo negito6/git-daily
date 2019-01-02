@@ -56,6 +56,25 @@ module Git
         `git config gitdaily.master #{master}`
 
         # develop branch
+        set_develop
+
+        # initialized
+        `git config gitdaily.init true`
+
+        puts
+        puts "git-daily completed to initialize."
+        selected_url
+      end
+
+      def usage
+        <<-EOS
+Usage: git daily init
+EOS
+      end
+
+      private
+
+      def set_develop
         print "Name develop branch [develop]: "
         develop = gets.strip
         if develop.empty?
@@ -75,18 +94,6 @@ module Git
           end
         end
 
-        # initialized
-        `git config gitdaily.init true`
-
-        puts
-        puts "git-daily completed to initialize."
-        selected_url
-      end
-
-      def usage
-        <<-EOS
-Usage: git daily init
-EOS
       end
     end
   end
