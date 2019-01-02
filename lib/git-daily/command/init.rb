@@ -52,6 +52,7 @@ module Git
         if master.empty?
           master = "master"
         end
+        `git checkout #{master} && git checkout -`
         `git config gitdaily.master #{master}`
 
         # develop branch
