@@ -56,7 +56,7 @@ module Git
         `git config gitdaily.master #{master}`
 
         # develop branch
-        set_develop
+        set_branch("develop", default: "develop")
 
         # initialized
         `git config gitdaily.init true`
@@ -74,22 +74,24 @@ EOS
 
       private
 
-      def set_develop
-        print "Name develop branch [develop]: "
-        develop = gets.strip
-        if develop.empty?
-          develop = "develop"
-        end
-        `git config gitdaily.develop #{develop}`
+      def set_branch(name, default: nil)
+        default ||= name
 
-        unless Command.has_branch? develop
+        print "Name #{name} branch [#{name}]: "
+        branch = gets.strip
+        if branch.empty?
+          branch = default
+        end
+        `git config gitdaily.#{name} #{branch}`
+
+        unless Command.has_branch? branch
           remote = Command.remote
-          if remote and Command.has_remote_branch?(remote, develop)
-            `git checkout #{develop}`
+          if remote and Command.has_remote_branch?(remote, branch)
+            `git checkout #{branch}`
           else
-            `git checkout -b #{develop}`
+            `git checkout -b #{branch}`
             if remote
-              `git push #{remote} #{develop}`
+              `git push #{remote} #{branch}`
             end
           end
         end
