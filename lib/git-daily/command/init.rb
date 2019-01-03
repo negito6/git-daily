@@ -46,16 +46,7 @@ module Git
         puts "Your remote is [#{selected_url}]"
         Git::Daily.application.remote = selected_url
 
-        # master branch
-        print "Name master branch [master]: "
-        master = gets.strip
-        if master.empty?
-          master = "master"
-        end
-        `git checkout #{master} && git checkout -`
-        `git config gitdaily.master #{master}`
-
-        # develop branch
+        set_branch("master", default: "master")
         set_branch("develop", default: "develop")
 
         # initialized
