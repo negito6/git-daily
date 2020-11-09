@@ -328,7 +328,7 @@ module Git
         mod_files = []
         add_files = []
         revs.each do |rev|
-          mod_files += rev[:add_files]
+          add_files += rev[:add_files]
           mod_files += rev[:mod_files]
         end
         mod_files.sort!.uniq!
