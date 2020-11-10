@@ -299,40 +299,34 @@ module Git
         puts "first, fetch remotes"
         `git fetch --all`
 
+        key_maps = {
+          "A" => :add_files,
+          "M" => :mod_files,
+        }
+
         revs = []
         rev_ids = `git rev-list --no-merges #{main_branch}..#{current_branch}`.split(/\n/)
         rev_ids.each do |rev_id|
           rev = {}
           rev[:id] = rev_id
-          rev[:add_files] = []
-          rev[:mod_files] = []
+          key_maps.values.each do |key|
+            rev[key] = []
+          end
 
-          logs = `git show #{rev_id}`
-          file = nil
-          logs.each_line do |line|
+          log = `git show --name-status #{rev_id}`
+          log.each_line do |line|
             case line
             when /^Author: .+\<([^@]+)@([^>]+)>/
               rev[:author] = $1
-            when /^diff --git a\/([^ ]+) /
-              file = $1
-            when /^new file mode/
-              rev[:add_files] << file
-            when /^index/
-              rev[:mod_files] << file
+            when /^([AM])\s+([^\s]+)\s/
+              rev[key_maps[$1]] << $2
             end
           end
-
           revs << rev
         end
 
-        mod_files = []
-        add_files = []
-        revs.each do |rev|
-          add_files += rev[:add_files]
-          mod_files += rev[:mod_files]
-        end
-        mod_files.sort!.uniq!
-        add_files.sort!.uniq!
+        add_files = revs.map { |rev| rev[:add_files] }.flatten.sort.uniq
+        mod_files = revs.map { |rev| rev[:mod_files] }.flatten.sort.uniq - add_files
 
         if revs.size > 0
           puts "Commit list:"
