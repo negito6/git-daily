@@ -302,6 +302,7 @@ module Git
         key_maps = {
           "A" => :add_files,
           "M" => :mod_files,
+          "D" => :del_files,
         }
 
         revs = []
@@ -318,15 +319,20 @@ module Git
             case line
             when /^Author: .+\<([^@]+)@([^>]+)>/
               rev[:author] = $1
-            when /^([AM])\s+([^\s]+)\s/
+            when /^([AMD])\s+([^\s]+)\s/
               rev[key_maps[$1]] << $2
             end
           end
+
           revs << rev
         end
 
-        add_files = revs.map { |rev| rev[:add_files] }.flatten.sort.uniq
-        mod_files = revs.map { |rev| rev[:mod_files] }.flatten.sort.uniq - add_files
+        tmp_del_files = revs.map { |rev| rev[:del_files] }.flatten.sort.uniq
+        reverted_files = tmp_del_files.reject { |f| `git ls-files #{f}`.chomp.empty? }.compact
+        del_files = tmp_del_files - reverted_files
+
+        add_files = revs.map { |rev| rev[:add_files] }.flatten.sort.uniq - reverted_files
+        mod_files = (revs.map { |rev| rev[:mod_files] }.flatten.sort.uniq - del_files - add_files + reverted_files).uniq
 
         if revs.size > 0
           puts "Commit list:"
@@ -339,7 +345,12 @@ module Git
         if add_files.size > 0
           puts "Added files:"
           add_files.each do |file|
-            puts "\t#{file}"
+            comment = if del_files.include?(file)
+                        " (deleted)"
+                      else
+                        ""
+                      end
+            puts "\t#{file}#{comment}"
           end
           puts
         end
@@ -347,6 +358,14 @@ module Git
         if mod_files.size > 0
           puts "Modified files:"
           mod_files.each do |file|
+            puts "\t#{file}"
+          end
+          puts
+        end
+
+        if del_files.size > 0
+          puts "Deleted files:"
+          del_files.each do |file|
             puts "\t#{file}"
           end
           puts
