@@ -328,7 +328,7 @@ module Git
         end
 
         tmp_del_files = revs.map { |rev| rev[:del_files] }.flatten.sort.uniq
-        reverted_files = tmp_del_files.reject { |f| `git ls-files #{f}`.chomp.empty? }.compact
+        reverted_files = `git ls-files #{tmp_del_files.join(" ")}`.split("\n")
         del_files = tmp_del_files - reverted_files
 
         add_files = revs.map { |rev| rev[:add_files] }.flatten.sort.uniq - reverted_files
