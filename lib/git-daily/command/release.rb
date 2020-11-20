@@ -328,8 +328,7 @@ module Git
         end
 
         tmp_del_files = revs.map { |rev| rev[:del_files] }.flatten.sort.uniq
-        reverted_files = `git ls-files #{tmp_del_files.join(" ")}`.split("\n")
-        del_files = tmp_del_files - reverted_files
+        del_files, reverted_files = tmp_del_files.partition { |f| `git ls-files #{f}`.chomp.empty? }
 
         add_files = revs.map { |rev| rev[:add_files] }.flatten.sort.uniq - reverted_files
         mod_files = (revs.map { |rev| rev[:mod_files] }.flatten.sort.uniq - del_files - add_files + reverted_files).uniq
